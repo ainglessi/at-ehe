@@ -154,7 +154,7 @@ bool IsValidPosition(int anode) {
 }
 
 int sCount(TH1I h, int startCh, int endCh) {
-	const int losthr = -400;
+	const int losthr = -400;  // NIM signal is negative.
 	bool below = false;
 	int npeaks = 0;
 
@@ -168,9 +168,7 @@ int sCount(TH1I h, int startCh, int endCh) {
 			}
 			below = false;
 		}
-		//printf("logic[1][%d]=%d below = %s\n", i, logic[1][i], below ? "true" : "false");
 	}
-	//printf("Number of LOS counts: %d \n", npeaks);
 
 	return npeaks;
 }
@@ -199,29 +197,29 @@ void tpc::Begin(TTree * /*tree*/)
    c0->Print("events.pdf[");  // Start writing to file, don't actually write ([).
    delete c0;
 
-   t1->Branch("event", &tevent, "tevent/I");
-   t1->Branch("tbeg", tbeg, "tbeg[67]/F");
-   t1->Branch("tend", tend, "tend[67]/F");
-   t1->Branch("ea", ea, "ea[67]/F");
-   t1->Branch("etot", &etot, "etot/F");
-   t1->Branch("er0", &er0, "er0/F");
-   t1->Branch("er1", &er1, "er1/F");
-   t1->Branch("er2", &er2, "er2/F");
-   t1->Branch("er3", &er3, "er3/F");
-   t1->Branch("er4", &er4, "er4/F");
-   t1->Branch("dbegc", &dbegc, "dbegc/F");
-   t1->Branch("dbeg166", &dbeg166, "dbeg166/F");
-   t1->Branch("dbeg21", &dbeg21, "dbeg21/F");
-   t1->Branch("dbeg32", &dbeg32, "dbeg32/F");
-   t1->Branch("dbeg43", &dbeg43, "dbeg43/F");
-   t1->Branch("dend1beg2", &dend1beg2, "dend1beg2/F");
-   t1->Branch("dend2beg3", &dend2beg3, "dend2beg3/F");
-   t1->Branch("dend3beg4", &dend3beg4, "dend3beg4/F");
-   t1->Branch("mr0", &mr0, "mr0/I");
-   t1->Branch("mr1", &mr1, "mr1/I");
-   t1->Branch("mr2", &mr2, "mr2/I");
-   t1->Branch("mr3", &mr3, "mr3/I");
-   t1->Branch("mr4", &mr4, "mr4/I");
+   t1->Branch("event", &tevent, "tevent/I");  // Event number.
+   t1->Branch("tbeg", tbeg, "tbeg[67]/F");  // Signal begin time, ch.
+	t1->Branch("tend", tend, "tend[67]/F");  // Signal end time, ch.
+   t1->Branch("ea", ea, "ea[67]/F");  // Individual anode energies, AU.
+   t1->Branch("etot", &etot, "etot/F");  // Total cluster energy, AU.
+   t1->Branch("er0", &er0, "er0/F");  // A65 + A66 energy.
+   t1->Branch("er1", &er1, "er1/F");  // Ring 1 (anodes 1, 5, 9, ...) energy.
+	t1->Branch("er2", &er2, "er2/F");  // Ring 2 (anodes 2, 6, 10, ...) energy.
+	t1->Branch("er3", &er3, "er3/F");  // Ring 3 (anodes 3, 7, 11, ...) energy.
+	t1->Branch("er4", &er4, "er4/F");  // Ring 4 (anodes 4, 8, 12, ...) energy.
+	t1->Branch("dbegc", &dbegc, "dbegc/F");  // Tbeg[66] - Tbeg[65], ch.
+	t1->Branch("dbeg166", &dbeg166, "dbeg166/F");  // Tbeg[ring1] - Tbeg[66], ch.
+	t1->Branch("dbeg21", &dbeg21, "dbeg21/F");  // Tbeg[ring2] - Tbeg[ring1], ch.
+	t1->Branch("dbeg32", &dbeg32, "dbeg32/F");  // Tbeg[ring3] - Tbeg[ring2], ch.
+	t1->Branch("dbeg43", &dbeg43, "dbeg43/F");  // Tbeg[ring4] - Tbeg[ring3], ch.
+	t1->Branch("dend1beg2", &dend1beg2, "dend1beg2/F");  // Tend[ring1] - Tbeg[ring2], ch.
+	t1->Branch("dend2beg3", &dend2beg3, "dend2beg3/F");  // Tend[ring2] - Tbeg[ring3], ch.
+	t1->Branch("dend3beg4", &dend3beg4, "dend3beg4/F");  // Tend[ring3] - Tbeg[ring4], ch.
+   t1->Branch("mr0", &mr0, "mr0/I");  // Multiplicity (A65, A66 or both).
+   t1->Branch("mr1", &mr1, "mr1/I");  // Multiplicity (number of ring 1 signals + neighbors).
+   t1->Branch("mr2", &mr2, "mr2/I");  // Multiplicity (number of ring 2 signals + neighbors).
+   t1->Branch("mr3", &mr3, "mr3/I");  // Multiplicity (number of ring 3 signals + neighbors).
+   t1->Branch("mr4", &mr4, "mr4/I");  // Multiplicity (number of ring 4 signals + neighbors).
 
 }
 

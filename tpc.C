@@ -410,420 +410,420 @@ Bool_t tpc::Process(Long64_t entry)
 		int dT6665 = pbeg[66] - pbeg[65];
 		if ((e[66] > THR0) && ValidSignal(66) &&
 			((pend[65] - pbeg[66]) > 0) && (dT6665 < MAX_RING_DT) && (dT6665 > MIN_RING_DT)) {
-			LOG("valid.\n");
-		aboveThr66Count++;
-		aboveThr66 = true;
-			} else {
+         LOG("valid.\n");
+         aboveThr66Count++;
+         aboveThr66 = true;
+      } else {
 				LOG("invalid.\n");
-			}
+		}
 
-			for (int i = 1; i < 62; i = i + 4) {
+      for (int i = 1; i < 62; i = i + 4) {
 
-				if ((i < 17) || (i > 29)) {  // Exclude FADC2 with different shaping time.
+         if ((i < 17) || (i > 29)) {  // Exclude FADC2 with different shaping time.
 
-					if (aboveThr65) {
-						clusters[currentCluster].goodAnodes[0][0] = 65;
-						clusters[currentCluster].energy = e[65];
-					}
+            if (aboveThr65) {
+               clusters[currentCluster].goodAnodes[0][0] = 65;
+               clusters[currentCluster].energy = e[65];
+            }
 
-					if (aboveThr66) {
-						clusters[currentCluster].goodAnodes[0][1] = 66;
-						clusters[currentCluster].energy = clusters[currentCluster].energy + e[66];
-					}
+            if (aboveThr66) {
+               clusters[currentCluster].goodAnodes[0][1] = 66;
+               clusters[currentCluster].energy = clusters[currentCluster].energy + e[66];
+            }
 
-					clusters[currentCluster].valid = false;
+            clusters[currentCluster].valid = false;
 
-					// Ring 1.
-					if ((e[i] > THR1) && IsValidWidth(i)) {
-						dT166 = pbeg[i] - pbeg[66];
-						dTe66b1 = pend[66] - pbeg[i];
-						LOG("*** A%d cluster is a candidate: E = %.1f [%.0f - %.0f]\n", i, e[i], pbeg[i], pend[i]);
-						if (IsValidPosition(i) && aboveThr65 && aboveThr66)
-							clusters[currentCluster].valid = true;
-						if ((dT166 > MAX_RING_DT) || (dT166 < MIN_RING_DT) ||
-							//(pend[i] - pbeg[maxR2I] < 0) || (pend[i] - pbeg[maxR2I] > SHAPING_T))
-							(abs(dTe66b1 - SHAPING_T) > ENDBEG_DT))
-							clusters[currentCluster].valid = false;
-						clusters[currentCluster].goodAnodes[1][currentAnode] = i;
-						clusters[currentCluster].energy = clusters[currentCluster].energy + e[i];
-						currentAnode++;
-						if (i == 1)
-							neighbor_left = 61;
-						else
-							neighbor_left = i - 4;
-						if ((abs(pbeg[neighbor_left] - pbeg[i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {  // TODO: Update.
-							LOG("Adding A%d as a neigbor of A%d\n", neighbor_left, i);
-							clusters[currentCluster].goodAnodes[1][currentAnode] = neighbor_left;
-							clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
-							currentAnode++;
-						}
-						if (i == 61)
-							neighbor_right = 1;
-						else
-							neighbor_right = i + 4;
-						if ((abs(pbeg[neighbor_right] - pbeg[i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
-							LOG("Adding A%d as a neigbor of A%d\n", neighbor_right, i);
-							clusters[currentCluster].goodAnodes[1][currentAnode] = neighbor_right;
-							clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
-							currentAnode++;
-						}
+            // Ring 1.
+            if ((e[i] > THR1) && IsValidWidth(i)) {
+               dT166 = pbeg[i] - pbeg[66];
+               dTe66b1 = pend[66] - pbeg[i];
+               LOG("*** A%d cluster is a candidate: E = %.1f [%.0f - %.0f]\n", i, e[i], pbeg[i], pend[i]);
+               if (IsValidPosition(i) && aboveThr65 && aboveThr66)
+                  clusters[currentCluster].valid = true;
+               if ((dT166 > MAX_RING_DT) || (dT166 < MIN_RING_DT) ||
+                  //(pend[i] - pbeg[maxR2I] < 0) || (pend[i] - pbeg[maxR2I] > SHAPING_T))
+                  (abs(dTe66b1 - SHAPING_T) > ENDBEG_DT))
+                  clusters[currentCluster].valid = false;
+               clusters[currentCluster].goodAnodes[1][currentAnode] = i;
+               clusters[currentCluster].energy = clusters[currentCluster].energy + e[i];
+               currentAnode++;
+               if (i == 1)
+                  neighbor_left = 61;
+               else
+                  neighbor_left = i - 4;
+               if ((abs(pbeg[neighbor_left] - pbeg[i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {  // TODO: Update.
+                  LOG("Adding A%d as a neigbor of A%d\n", neighbor_left, i);
+                  clusters[currentCluster].goodAnodes[1][currentAnode] = neighbor_left;
+                  clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
+                  currentAnode++;
+               }
+               if (i == 61)
+                  neighbor_right = 1;
+               else
+                  neighbor_right = i + 4;
+               if ((abs(pbeg[neighbor_right] - pbeg[i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
+                  LOG("Adding A%d as a neigbor of A%d\n", neighbor_right, i);
+                  clusters[currentCluster].goodAnodes[1][currentAnode] = neighbor_right;
+                  clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
+                  currentAnode++;
+               }
 
-						// Ring 2.
-						currentAnode = 0;
-						int r2i = i + 1;
-						if (r2i == 2)
-							neighbor_left = 62;
-						else
-							neighbor_left = r2i - 4;
-						if (r2i == 62)
-							neighbor_right = 2;
-						else
-							neighbor_right = r2i + 4;
-						int maxR2I = MaxNeighborI(r2i, neighbor_left, neighbor_right);
-						//LOG("A%d: %.1f > %.1f, width_valid = %d, dt = %.1f \n", r2i, e[r2i], THR2, IsValidWidth(maxR2I), dT21);
-						if ((e[maxR2I] > THR2) && IsValidWidth(maxR2I)) {
-							dT21 = pbeg[maxR2I] - pbeg[i];
-							dTe1b2 = pend[i] - pbeg[maxR2I];
-							LOG("Ring 2 passed\n");
-							if (!IsValidPosition(maxR2I) || //(dT21 > MAX_RING_DT) || (dT21 < MIN_RING_DT) ||
-								//(pend[i] - pbeg[maxR2I] < 0) || (pend[i] - pbeg[maxR2I] > SHAPING_T))
-								(abs(dTe1b2 - SHAPING_T) > ENDBEG_DT))
-								clusters[currentCluster].valid = false;
-							LOG("Ring 2: A%d is the biggest\n", maxR2I);
-							clusters[currentCluster].goodAnodes[2][currentAnode] = maxR2I;
-							clusters[currentCluster].energy = clusters[currentCluster].energy + e[maxR2I];
-							currentAnode++;
+               // Ring 2.
+               currentAnode = 0;
+               int r2i = i + 1;
+               if (r2i == 2)
+                  neighbor_left = 62;
+               else
+                  neighbor_left = r2i - 4;
+               if (r2i == 62)
+                  neighbor_right = 2;
+               else
+                  neighbor_right = r2i + 4;
+               int maxR2I = MaxNeighborI(r2i, neighbor_left, neighbor_right);
+               //LOG("A%d: %.1f > %.1f, width_valid = %d, dt = %.1f \n", r2i, e[r2i], THR2, IsValidWidth(maxR2I), dT21);
+               if ((e[maxR2I] > THR2) && IsValidWidth(maxR2I)) {
+                  dT21 = pbeg[maxR2I] - pbeg[i];
+                  dTe1b2 = pend[i] - pbeg[maxR2I];
+                  LOG("Ring 2 passed\n");
+                  if (!IsValidPosition(maxR2I) || //(dT21 > MAX_RING_DT) || (dT21 < MIN_RING_DT) ||
+                     //(pend[i] - pbeg[maxR2I] < 0) || (pend[i] - pbeg[maxR2I] > SHAPING_T))
+                     (abs(dTe1b2 - SHAPING_T) > ENDBEG_DT))
+                     clusters[currentCluster].valid = false;
+                  LOG("Ring 2: A%d is the biggest\n", maxR2I);
+                  clusters[currentCluster].goodAnodes[2][currentAnode] = maxR2I;
+                  clusters[currentCluster].energy = clusters[currentCluster].energy + e[maxR2I];
+                  currentAnode++;
 
-							if (maxR2I == r2i) {
-								if ((abs(pbeg[neighbor_left] - pbeg[r2i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {
-									LOG("Adding A%d as a neigbor of A%d\n", neighbor_left, maxR2I);
-									clusters[currentCluster].goodAnodes[2][currentAnode] = neighbor_left;
-									clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
-									currentAnode++;
-								}
+                  if (maxR2I == r2i) {
+                     if ((abs(pbeg[neighbor_left] - pbeg[r2i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {
+                        LOG("Adding A%d as a neigbor of A%d\n", neighbor_left, maxR2I);
+                        clusters[currentCluster].goodAnodes[2][currentAnode] = neighbor_left;
+                        clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
+                        currentAnode++;
+                     }
 
-								if ((abs(pbeg[neighbor_right] - pbeg[r2i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
-									LOG("Adding A%d as a neigbor of A%d\n", neighbor_right, maxR2I);
-									clusters[currentCluster].goodAnodes[2][currentAnode] = neighbor_right;
-									clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
-									currentAnode++;
-								}
-							} else {
-								if ((abs(pbeg[maxR2I] - pbeg[r2i]) < NEIGHBOR_DT) && ValidSignal(r2i)) {
-									LOG("Adding A%d as a neigbor of A%d\n", r2i, maxR2I);
-									clusters[currentCluster].goodAnodes[2][currentAnode] = r2i;
-									clusters[currentCluster].energy = clusters[currentCluster].energy + e[r2i];
-									currentAnode++;
-								}
-							}
+                     if ((abs(pbeg[neighbor_right] - pbeg[r2i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
+                        LOG("Adding A%d as a neigbor of A%d\n", neighbor_right, maxR2I);
+                        clusters[currentCluster].goodAnodes[2][currentAnode] = neighbor_right;
+                        clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
+                        currentAnode++;
+                     }
+                  } else {
+                     if ((abs(pbeg[maxR2I] - pbeg[r2i]) < NEIGHBOR_DT) && ValidSignal(r2i)) {
+                        LOG("Adding A%d as a neigbor of A%d\n", r2i, maxR2I);
+                        clusters[currentCluster].goodAnodes[2][currentAnode] = r2i;
+                        clusters[currentCluster].energy = clusters[currentCluster].energy + e[r2i];
+                        currentAnode++;
+                     }
+                  }
 
-							// Ring 3.
-							currentAnode = 0;
-							int r3i = i + 2;
-							if (r3i == 3)
-								neighbor_left = 63;
-							else
-								neighbor_left = r3i - 4;
-							if (r3i == 63)
-								neighbor_right = 3;
-							else
-								neighbor_right = r3i + 4;
-							int maxR3I = MaxNeighborI(r3i, neighbor_left, neighbor_right);
+                  // Ring 3.
+                  currentAnode = 0;
+                  int r3i = i + 2;
+                  if (r3i == 3)
+                     neighbor_left = 63;
+                  else
+                     neighbor_left = r3i - 4;
+                  if (r3i == 63)
+                     neighbor_right = 3;
+                  else
+                     neighbor_right = r3i + 4;
+                  int maxR3I = MaxNeighborI(r3i, neighbor_left, neighbor_right);
 
-							//LOG("A%d: %.1f > %.1f, valid = %d, dbeg32 = %.1f, ddt = %.1f \n", r3i, e[r3i], THR3, ValidSignal(r3i), dT32, abs(dT21 - dT32));
+                  //LOG("A%d: %.1f > %.1f, valid = %d, dbeg32 = %.1f, ddt = %.1f \n", r3i, e[r3i], THR3, ValidSignal(r3i), dT32, abs(dT21 - dT32));
 
-							if ((e[maxR3I] > THR3) && IsValidWidth(maxR3I)) {  // TODO: check if on straight line.
-								dT32 = pbeg[maxR3I] - pbeg[maxR2I];
-								dTe2b3 = pend[maxR2I] - pbeg[maxR3I];
-								if (!IsValidPosition(maxR3I) || (dT32 > MAX_RING_DT) || (dT32 < MIN_RING_DT) || (abs(dT21 - dT32) > R32R21) ||
-									//(pend[maxR2I] - pbeg[maxR3I] < 0) || (pend[maxR2I] - pbeg[maxR3I] > SHAPING_T))
-									(abs(dTe2b3 - SHAPING_T) > ENDBEG_DT))
-									clusters[currentCluster].valid = false;
-								LOG("Ring 3: A%d is the biggest\n", maxR3I);
-								clusters[currentCluster].goodAnodes[3][currentAnode] = maxR3I;
-								clusters[currentCluster].energy = clusters[currentCluster].energy + e[maxR3I];
-								currentAnode++;
+                  if ((e[maxR3I] > THR3) && IsValidWidth(maxR3I)) {  // TODO: check if on straight line.
+                     dT32 = pbeg[maxR3I] - pbeg[maxR2I];
+                     dTe2b3 = pend[maxR2I] - pbeg[maxR3I];
+                     if (!IsValidPosition(maxR3I) || (dT32 > MAX_RING_DT) || (dT32 < MIN_RING_DT) || (abs(dT21 - dT32) > R32R21) ||
+                        //(pend[maxR2I] - pbeg[maxR3I] < 0) || (pend[maxR2I] - pbeg[maxR3I] > SHAPING_T))
+                        (abs(dTe2b3 - SHAPING_T) > ENDBEG_DT))
+                        clusters[currentCluster].valid = false;
+                     LOG("Ring 3: A%d is the biggest\n", maxR3I);
+                     clusters[currentCluster].goodAnodes[3][currentAnode] = maxR3I;
+                     clusters[currentCluster].energy = clusters[currentCluster].energy + e[maxR3I];
+                     currentAnode++;
 
-								if (maxR3I == r3i) {
-									if ((abs(pbeg[neighbor_left] - pbeg[r3i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {
-										LOG("Adding A%d as a neigbor of A%d\n", neighbor_left, maxR3I);
-										clusters[currentCluster].goodAnodes[3][currentAnode] = neighbor_left;
-										clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
-										currentAnode++;
-									}
+                     if (maxR3I == r3i) {
+                        if ((abs(pbeg[neighbor_left] - pbeg[r3i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {
+                           LOG("Adding A%d as a neigbor of A%d\n", neighbor_left, maxR3I);
+                           clusters[currentCluster].goodAnodes[3][currentAnode] = neighbor_left;
+                           clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
+                           currentAnode++;
+                        }
 
-									if ((abs(pbeg[neighbor_right] - pbeg[r3i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
-										LOG("Adding A%d as a neigbor of A%d\n", neighbor_right, maxR3I);
-										clusters[currentCluster].goodAnodes[3][currentAnode] = neighbor_right;
-										clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
-										currentAnode++;
-									}
-								} else {
-									if ((abs(pbeg[maxR3I] - pbeg[r3i]) < NEIGHBOR_DT) && ValidSignal(r3i)) {
-										LOG("Adding A%d as a neigbor of A%d\n", r3i, maxR3I);
-										clusters[currentCluster].goodAnodes[3][currentAnode] = r3i;
-										clusters[currentCluster].energy = clusters[currentCluster].energy + e[r3i];
-										currentAnode++;
-									}
-								}
+                        if ((abs(pbeg[neighbor_right] - pbeg[r3i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
+                           LOG("Adding A%d as a neigbor of A%d\n", neighbor_right, maxR3I);
+                           clusters[currentCluster].goodAnodes[3][currentAnode] = neighbor_right;
+                           clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
+                           currentAnode++;
+                        }
+                     } else {
+                        if ((abs(pbeg[maxR3I] - pbeg[r3i]) < NEIGHBOR_DT) && ValidSignal(r3i)) {
+                           LOG("Adding A%d as a neigbor of A%d\n", r3i, maxR3I);
+                           clusters[currentCluster].goodAnodes[3][currentAnode] = r3i;
+                           clusters[currentCluster].energy = clusters[currentCluster].energy + e[r3i];
+                           currentAnode++;
+                        }
+                     }
 
-								// Ring 4.
-								currentAnode = 0;
-								int r4i = i + 3;
-								if (r4i == 4)
-									neighbor_left = 64;
-								else
-									neighbor_left = r4i - 4;
-								if (r4i == 64)
-									neighbor_right = 4;
-								else
-									neighbor_right = r4i + 4;
-								int maxR4I = MaxNeighborI(r4i, neighbor_left, neighbor_right);
-								float eR4 = 0;
+                     // Ring 4.
+                     currentAnode = 0;
+                     int r4i = i + 3;
+                     if (r4i == 4)
+                        neighbor_left = 64;
+                     else
+                        neighbor_left = r4i - 4;
+                     if (r4i == 64)
+                        neighbor_right = 4;
+                     else
+                        neighbor_right = r4i + 4;
+                     int maxR4I = MaxNeighborI(r4i, neighbor_left, neighbor_right);
+                     float eR4 = 0;
 
-								//LOG("A%d: %.1f > %.1f, valid = %d, dbeg43 = %.1f, ddt = %.1f \n", maxR4I, e[maxR4I], THR4, ValidSignal(maxR4I), dT43, abs(dT21 - dT43));
+                     //LOG("A%d: %.1f > %.1f, valid = %d, dbeg43 = %.1f, ddt = %.1f \n", maxR4I, e[maxR4I], THR4, ValidSignal(maxR4I), dT43, abs(dT21 - dT43));
 
-								if ((e[maxR4I] > THR4) && IsValidWidth(maxR4I)) {  // TODO: check if on straight line.
-									dT43 = pbeg[maxR4I] - pbeg[maxR3I];
-									dTe3b4 = pend[maxR3I] - pbeg[maxR4I];
-									if (!IsValidPosition(maxR4I) || (dT43 > MAX_RING_DT) || (dT43 < MIN_RING_DT) || (abs(dT21 - dT43) > R32R21) ||
-										//(pend[maxR3I] - pbeg[maxR4I] < 0) || (pend[maxR3I] - pbeg[maxR4I] > SHAPING_T))
-										(abs(dTe3b4 - SHAPING_T) > ENDBEG_DT))
-										clusters[currentCluster].valid = false;
-									clusters[currentCluster].goodAnodes[4][currentAnode] = maxR4I;
-									clusters[currentCluster].energy = clusters[currentCluster].energy + e[maxR4I];
-									currentAnode++;
+                     if ((e[maxR4I] > THR4) && IsValidWidth(maxR4I)) {  // TODO: check if on straight line.
+                        dT43 = pbeg[maxR4I] - pbeg[maxR3I];
+                        dTe3b4 = pend[maxR3I] - pbeg[maxR4I];
+                        if (!IsValidPosition(maxR4I) || (dT43 > MAX_RING_DT) || (dT43 < MIN_RING_DT) || (abs(dT21 - dT43) > R32R21) ||
+                           //(pend[maxR3I] - pbeg[maxR4I] < 0) || (pend[maxR3I] - pbeg[maxR4I] > SHAPING_T))
+                           (abs(dTe3b4 - SHAPING_T) > ENDBEG_DT))
+                           clusters[currentCluster].valid = false;
+                        clusters[currentCluster].goodAnodes[4][currentAnode] = maxR4I;
+                        clusters[currentCluster].energy = clusters[currentCluster].energy + e[maxR4I];
+                        currentAnode++;
 
-									eR4 = eR4 + e[maxR4I];
+                        eR4 = eR4 + e[maxR4I];
 
-									if (maxR4I == r4i) {
-										if ((abs(pbeg[neighbor_left] - pbeg[r4i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {
-											clusters[currentCluster].goodAnodes[4][currentAnode] = neighbor_left;
-											clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
-											currentAnode++;
-											eR4 = eR4 + e[neighbor_left];
-										}
+                        if (maxR4I == r4i) {
+                           if ((abs(pbeg[neighbor_left] - pbeg[r4i]) < NEIGHBOR_DT) && ValidSignal(neighbor_left)) {
+                              clusters[currentCluster].goodAnodes[4][currentAnode] = neighbor_left;
+                              clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_left];
+                              currentAnode++;
+                              eR4 = eR4 + e[neighbor_left];
+                           }
 
-										if ((abs(pbeg[neighbor_right] - pbeg[r4i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
-											clusters[currentCluster].goodAnodes[4][currentAnode] = neighbor_right;
-											clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
-											currentAnode++;
-											eR4 = eR4 + neighbor_right;
-										}
-									} else {
-										if ((abs(pbeg[maxR4I] - pbeg[r4i]) < NEIGHBOR_DT) && ValidSignal(r4i)) {
-											clusters[currentCluster].goodAnodes[4][currentAnode] = r4i;
-											clusters[currentCluster].energy = clusters[currentCluster].energy + e[r4i];
-											currentAnode++;
-											eR4 = eR4 + e[r4i];
-										}
-									}
-									if (eR4 > ER4MAX)
-										clusters[currentCluster].valid = false;
-									LOG("Cluster %d: ER4 = %f, valid = %d \n", currentCluster, eR4, clusters[currentCluster].valid);
-								}
-							}
+                           if ((abs(pbeg[neighbor_right] - pbeg[r4i]) < NEIGHBOR_DT) && ValidSignal(neighbor_right)) {
+                              clusters[currentCluster].goodAnodes[4][currentAnode] = neighbor_right;
+                              clusters[currentCluster].energy = clusters[currentCluster].energy + e[neighbor_right];
+                              currentAnode++;
+                              eR4 = eR4 + neighbor_right;
+                           }
+                        } else {
+                           if ((abs(pbeg[maxR4I] - pbeg[r4i]) < NEIGHBOR_DT) && ValidSignal(r4i)) {
+                              clusters[currentCluster].goodAnodes[4][currentAnode] = r4i;
+                              clusters[currentCluster].energy = clusters[currentCluster].energy + e[r4i];
+                              currentAnode++;
+                              eR4 = eR4 + e[r4i];
+                           }
+                        }
+                        if (eR4 > ER4MAX)
+                           clusters[currentCluster].valid = false;
+                        LOG("Cluster %d: ER4 = %f, valid = %d \n", currentCluster, eR4, clusters[currentCluster].valid);
+                     }
+                  }
 
-						}
-						if (clusters[currentCluster].valid) {
-							LOG("=== Cluster %d: valid = %d E = %.1f\n", currentCluster, clusters[currentCluster].valid, clusters[currentCluster].energy);
-						}
-						currentCluster++;
-					}
-				}
-			}
+               }
+               if (clusters[currentCluster].valid) {
+                  LOG("=== Cluster %d: valid = %d E = %.1f\n", currentCluster, clusters[currentCluster].valid, clusters[currentCluster].energy);
+               }
+               currentCluster++;
+            }
+         }
+      }
 
-			float maxe = -1000;
-			int maxc = -1;
-			for (int c = 0; c < MAXCLUSTERS; c++) {
-				if (clusters[c].valid) {
-					if (clusters[c].energy > maxe) {
-						maxe = clusters[c].energy;
-						maxc = c;
-					}
-				}
-			}
+      float maxe = -1000;
+      int maxc = -1;
+      for (int c = 0; c < MAXCLUSTERS; c++) {
+         if (clusters[c].valid) {
+            if (clusters[c].energy > maxe) {
+               maxe = clusters[c].energy;
+               maxc = c;
+            }
+         }
+      }
 
-			bool eat = false;
-			for (int i = 1; i < 67; i++) {
-				if (e[i] > DISPLAY_THR) {  // There are anodes with energy above THR.
-					eat = true;
-					break;
-				}
-			}
+      bool eat = false;
+      for (int i = 1; i < 67; i++) {
+         if (e[i] > DISPLAY_THR) {  // There are anodes with energy above THR.
+            eat = true;
+            break;
+         }
+      }
 
-			if (eat)
-				aboveThresholdCount++;
+      if (eat)
+         aboveThresholdCount++;
 
-			if (maxc > -1) {
-				validClustersCount++;
-				if (clusters[maxc].goodAnodes[0][0] != 0)
-					valid65Count++;
-				if (clusters[maxc].goodAnodes[0][1] != 0)
-					valid66Count++;
-				if ((clusters[maxc].goodAnodes[0][0] != 0) && (clusters[maxc].goodAnodes[0][1] != 0))
-					valid65and66Count++;
-			}
+      if (maxc > -1) {
+         validClustersCount++;
+         if (clusters[maxc].goodAnodes[0][0] != 0)
+            valid65Count++;
+         if (clusters[maxc].goodAnodes[0][1] != 0)
+            valid66Count++;
+         if ((clusters[maxc].goodAnodes[0][0] != 0) && (clusters[maxc].goodAnodes[0][1] != 0))
+            valid65and66Count++;
+      }
 
-			if (((maxc > -1) || eat) && (page < MAXPDF)) {  // There are either valid clusters or just anodes above THR.
-				page++;
-				TCanvas * cc = new TCanvas("cnvsC");
-				gStyle->SetPaperSize(TStyle::kA4);
-				cc->Divide(1, 2);
-				cc->cd(1);
+      if (((maxc > -1) || eat) && (page < MAXPDF)) {  // There are either valid clusters or just anodes above THR.
+         page++;
+         TCanvas * cc = new TCanvas("cnvsC");
+         gStyle->SetPaperSize(TStyle::kA4);
+         cc->Divide(1, 2);
+         cc->cd(1);
 
-				// Draw central anodes.
+         // Draw central anodes.
 
-				char *hstitle = new char[255];
-				sprintf(hstitle, "Event %lld: E_{SUM} = %.1f [%.0f-%.0f] + %.1f [%.0f-%.0f] = %.1f AU", entry, e[65], pbeg[65], pend[65], e[66], pbeg[66], pend[66], e[65] + e[66]);
-				TH1I * hs = new TH1I("A65+A66", hstitle, TRACELENGTH, 0, TRACELENGTH);
-				hs->Add(ht[65]);
-				hs->Add(ht[66]);
-				hs->SetLineColor(kGray);
-				hs->Draw();
-				ht[65]->SetLineColor(kBlue);
-				ht[65]->Draw("same");
-				ht[66]->SetLineColor(kMagenta);
-				ht[66]->Draw("same");
+         char *hstitle = new char[255];
+         sprintf(hstitle, "Event %lld: E_{SUM} = %.1f [%.0f-%.0f] + %.1f [%.0f-%.0f] = %.1f AU", entry, e[65], pbeg[65], pend[65], e[66], pbeg[66], pend[66], e[65] + e[66]);
+         TH1I * hs = new TH1I("A65+A66", hstitle, TRACELENGTH, 0, TRACELENGTH);
+         hs->Add(ht[65]);
+         hs->Add(ht[66]);
+         hs->SetLineColor(kGray);
+         hs->Draw();
+         ht[65]->SetLineColor(kBlue);
+         ht[65]->Draw("same");
+         ht[66]->SetLineColor(kMagenta);
+         ht[66]->Draw("same");
 
-				if (maxc > -1) {
-					char *estitle = new char[255];
-					strcpy(estitle, "E_{R} = [");
-					for (int ri = 0; ri < 5; ri++) {  // Rings 0 - 4.
-						for (int ai = 0; ai < MAXGOOD; ai++) {  // Good anodes in ring.
-							int ca = clusters[maxc].goodAnodes[ri][ai];
-							if (ca > 0) {
-								char *ae = new char[255];
-								sprintf(ae, " %.1f_{A%d}", e[ca], ca);
-								strcat(estitle, ae);
-							}
-						}
-					}
-					char *et = new char[255];
-					sprintf(et, "] = %.1f AU", maxe);
-					strcat(estitle, et);
-					TLatex energySumLabel;
-					energySumLabel.SetTextSize(0.04);
-					int ypos = ht[65]->GetBinContent(1) + 150;
-					energySumLabel.DrawLatex(300, ypos, estitle);
-					LOG("%s\n", estitle);
-				}
+         if (maxc > -1) {
+            char *estitle = new char[255];
+            strcpy(estitle, "E_{R} = [");
+            for (int ri = 0; ri < 5; ri++) {  // Rings 0 - 4.
+               for (int ai = 0; ai < MAXGOOD; ai++) {  // Good anodes in ring.
+                  int ca = clusters[maxc].goodAnodes[ri][ai];
+                  if (ca > 0) {
+                     char *ae = new char[255];
+                     sprintf(ae, " %.1f_{A%d}", e[ca], ca);
+                     strcat(estitle, ae);
+                  }
+               }
+            }
+            char *et = new char[255];
+            sprintf(et, "] = %.1f AU", maxe);
+            strcat(estitle, et);
+            TLatex energySumLabel;
+            energySumLabel.SetTextSize(0.04);
+            int ypos = ht[65]->GetBinContent(1) + 150;
+            energySumLabel.DrawLatex(300, ypos, estitle);
+            LOG("%s\n", estitle);
+         }
 
-				// Draw anodes above threshold.
-				TPad* pad2 = (TPad*)(cc->GetPrimitive("cnvsC_2"));
-				pad2->Divide(4,2);
-				int pad2i = 1;
-
-
-				for (int k = 1; k < 65; k++) {
-					bool foundInCluster = false;
-					for (int ri = 0; ri < 5; ri++)
-						for (int ai = 0; ai < MAXGOOD; ai++) {
-							if ((maxc > -1) && (clusters[maxc].valid) && (clusters[maxc].goodAnodes[ri][ai] == k)) {
-								LOG("Valid cluster: %d, [%d][%d] = %d \n", maxc, ri, ai, k);
-								foundInCluster = true;
-							}
-						}
-						if ((pad2i < 9) && (foundInCluster || (e[k] > DISPLAY_THR))) {
-							if (foundInCluster)
-								ht[k]->SetLineColor(kGreen);
-							else
-								ht[k]->SetLineColor(kBlue);
-							pad2->cd(pad2i);
-							pad2i++;
-							ht[k]->Draw();
-							//hts[i]->SetLineColor(kGray);
-							hts[k]->SetLineColorAlpha(kGray, 0.7);
-							hts[k]->Draw("same");
-							hp[k]->SetLineColorAlpha(kGray, 0.7);
-							hp[k]->Draw("same");
-							auto lbeg = new TLine(pbeg[k], hp[k]->GetBinContent(TMIN + 1), pbeg[k], 100);
-							lbeg->SetLineColor(kBlack);
-							lbeg->SetLineStyle(3);
-							lbeg->Draw();
-							auto lend = new TLine(pend[k], hp[k]->GetBinContent(TMAX - 1), pend[k], 100);
-							lend->SetLineColor(kBlack);
-							lend->SetLineStyle(3);
-							lend->Draw();
-						}
-				}
-
-				char *eventtitle = new char[255];
-				sprintf(eventtitle, "Title:Event %lld", entry);
-				cc->Print("events.pdf", eventtitle);
-
-				delete hs;
-
-				delete cc;
-			}
+         // Draw anodes above threshold.
+         TPad* pad2 = (TPad*)(cc->GetPrimitive("cnvsC_2"));
+         pad2->Divide(4,2);
+         int pad2i = 1;
 
 
-			// Fill TTree.
-			tevent = event;
-			for (int i = 0; i < 67; i++) {
-				tbeg[i] = pbeg[i];
-				tend[i] = pend[i];
-				ea[i] = e[i];
-			}
+         for (int k = 1; k < 65; k++) {
+            bool foundInCluster = false;
+            for (int ri = 0; ri < 5; ri++)
+               for (int ai = 0; ai < MAXGOOD; ai++) {
+                  if ((maxc > -1) && (clusters[maxc].valid) && (clusters[maxc].goodAnodes[ri][ai] == k)) {
+                     LOG("Valid cluster: %d, [%d][%d] = %d \n", maxc, ri, ai, k);
+                     foundInCluster = true;
+                  }
+               }
+               if ((pad2i < 9) && (foundInCluster || (e[k] > DISPLAY_THR))) {
+                  if (foundInCluster)
+                     ht[k]->SetLineColor(kGreen);
+                  else
+                     ht[k]->SetLineColor(kBlue);
+                  pad2->cd(pad2i);
+                  pad2i++;
+                  ht[k]->Draw();
+                  //hts[i]->SetLineColor(kGray);
+                  hts[k]->SetLineColorAlpha(kGray, 0.7);
+                  hts[k]->Draw("same");
+                  hp[k]->SetLineColorAlpha(kGray, 0.7);
+                  hp[k]->Draw("same");
+                  auto lbeg = new TLine(pbeg[k], hp[k]->GetBinContent(TMIN + 1), pbeg[k], 100);
+                  lbeg->SetLineColor(kBlack);
+                  lbeg->SetLineStyle(3);
+                  lbeg->Draw();
+                  auto lend = new TLine(pend[k], hp[k]->GetBinContent(TMAX - 1), pend[k], 100);
+                  lend->SetLineColor(kBlack);
+                  lend->SetLineStyle(3);
+                  lend->Draw();
+               }
+         }
 
-			er0 = 0;
-			er1 = 0;
-			er2 = 0;
-			er3 = 0;
-			er4 = 0;
-			dbegc = 0;
-			dend0beg0 = 0;
-			dbeg21 = 0;
-			dbeg32 = 0;
-			dbeg43 = 0;
-			dend1beg2 = 0;
-			dend2beg3 = 0;
-			dend3beg4 = 0;
+         char *eventtitle = new char[255];
+         sprintf(eventtitle, "Title:Event %lld", entry);
+         cc->Print("events.pdf", eventtitle);
 
-			if (aboveThr65) {
-				er0 = e[65];
-				etot = e[65];
-			}
-			if (aboveThr66) {
-				er0 = er0 + e[66];
-				dbegc = pbeg[66] - pbeg[65];
-				dend0beg0 = pend[65] - pbeg[66];
-				etot = etot + e[66];
-			}
-			if (maxc > -1) {
-				etot = maxe;
-				for (int i = 0; i < MAXGOOD; i++) {
-					if (clusters[maxc].goodAnodes[0][i] > 0) {
-						er0 = er0 + e[clusters[maxc].goodAnodes[0][i]];
-						mr0++;
-					}
-					if (clusters[maxc].goodAnodes[1][i] > 0) {
-						er1 = er1 + e[clusters[maxc].goodAnodes[1][i]];
-						dbeg166 = dT166;
-						mr1++;
-					}
-					if (clusters[maxc].goodAnodes[2][i] > 0) {
-						er2 = er2 + e[clusters[maxc].goodAnodes[2][i]];
-						dbeg21 = dT21;
-						dend1beg2 = dTe1b2;
-						mr2++;
-					}
-					if (clusters[maxc].goodAnodes[3][i] > 0) {
-						er3 = er3 + e[clusters[maxc].goodAnodes[3][i]];
-						dbeg32 = dT32;
-						dend2beg3 = dTe2b3;
-						mr3++;
-					}
-					if (clusters[maxc].goodAnodes[4][i] > 0) {
-						er4 = er4 + e[clusters[maxc].goodAnodes[4][i]];
-						dbeg43 = dT43;
-						dend3beg4 = dTe3b4;
-						mr4++;
-					}
-				}
-			}
+         delete hs;
 
-			t1->Fill();
+         delete cc;
+      }
+
+
+      // Fill TTree.
+      tevent = event;
+      for (int i = 0; i < 67; i++) {
+         tbeg[i] = pbeg[i];
+         tend[i] = pend[i];
+         ea[i] = e[i];
+      }
+
+      er0 = 0;
+      er1 = 0;
+      er2 = 0;
+      er3 = 0;
+      er4 = 0;
+      dbegc = 0;
+      dend0beg0 = 0;
+      dbeg21 = 0;
+      dbeg32 = 0;
+      dbeg43 = 0;
+      dend1beg2 = 0;
+      dend2beg3 = 0;
+      dend3beg4 = 0;
+
+      if (aboveThr65) {
+         er0 = e[65];
+         etot = e[65];
+      }
+      if (aboveThr66) {
+         er0 = er0 + e[66];
+         dbegc = pbeg[66] - pbeg[65];
+         dend0beg0 = pend[65] - pbeg[66];
+         etot = etot + e[66];
+      }
+      if (maxc > -1) {
+         etot = maxe;
+         for (int i = 0; i < MAXGOOD; i++) {
+            if (clusters[maxc].goodAnodes[0][i] > 0) {
+               er0 = er0 + e[clusters[maxc].goodAnodes[0][i]];
+               mr0++;
+            }
+            if (clusters[maxc].goodAnodes[1][i] > 0) {
+               er1 = er1 + e[clusters[maxc].goodAnodes[1][i]];
+               dbeg166 = dT166;
+               mr1++;
+            }
+            if (clusters[maxc].goodAnodes[2][i] > 0) {
+               er2 = er2 + e[clusters[maxc].goodAnodes[2][i]];
+               dbeg21 = dT21;
+               dend1beg2 = dTe1b2;
+               mr2++;
+            }
+            if (clusters[maxc].goodAnodes[3][i] > 0) {
+               er3 = er3 + e[clusters[maxc].goodAnodes[3][i]];
+               dbeg32 = dT32;
+               dend2beg3 = dTe2b3;
+               mr3++;
+            }
+            if (clusters[maxc].goodAnodes[4][i] > 0) {
+               er4 = er4 + e[clusters[maxc].goodAnodes[4][i]];
+               dbeg43 = dT43;
+               dend3beg4 = dTe3b4;
+               mr4++;
+            }
+         }
+      }
+
+      t1->Fill();
 
 	}
 

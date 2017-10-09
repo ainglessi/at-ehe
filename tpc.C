@@ -419,7 +419,7 @@ Bool_t tpc::Process(Long64_t entry)
 
       for (int i = 1; i < 62; i = i + 4) {
 
-         if ((i < 17) || (i > 29)) {  // Exclude FADC2 with different shaping time.
+         if ((i < 17) || (i > 32)) {  // Exclude FADC2 with different shaping time.
 
             if (aboveThr65) {
                clusters[currentCluster].goodAnodes[0][0] = 65;
